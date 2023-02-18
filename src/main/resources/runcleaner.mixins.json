@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "me.iris.runcleaner.mixin",
+	"compatibilityLevel": "JAVA_16",
+	"mixins": [
+		"LevelStorageMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
