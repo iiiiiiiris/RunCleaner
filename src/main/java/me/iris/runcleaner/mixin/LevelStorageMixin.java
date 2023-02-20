@@ -11,13 +11,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Mixin(LevelStorage.class)
 public abstract class LevelStorageMixin {
+    /**
+     * Names of worlds we want to delete
+     */
+    private static final List<String> SAVE_NAMES = Arrays.asList("New World", "Random Speedrun", "Set Speedrun");
+
+    /**
+     * Called everytime a world is created/loaded
+     */
     @Inject(
             method = "createSession",
             at = @At("HEAD")
@@ -26,7 +31,19 @@ public abstract class LevelStorageMixin {
         RunCleaner.LOGGER.info("Preparing to delete old runs...");
 
         // Get files in saves directory
-        final File[] files = RunCleaner.SAVES_DIR.listFiles((dir, name) -> name.contains("New World") || name.contains("Random Speedrun") && !name.equals(directoryName));
+        final File[] files = RunCleaner.SAVES_DIR.listFiles((dir, name) -> {
+            // Check for a save name match
+            boolean saveNameMatch = false;
+            for (String saveName : SAVE_NAMES) {
+                if (name.contains(saveName)) {
+                    saveNameMatch = true;
+                    break;
+                }
+            }
+
+            // Check if the world matches & the save isn't currently being loaded
+            return saveNameMatch && !name.equals(directoryName);
+        });
 
         // Check if any saves were found
         if (files == null || files.length == 0) {
